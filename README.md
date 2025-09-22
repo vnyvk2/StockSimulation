@@ -1,0 +1,1 @@
+# Stock Simulation System\nRun backend with mvn spring-boot:run
