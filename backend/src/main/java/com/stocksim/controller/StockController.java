@@ -1,20 +1,28 @@
 package com.stocksim.controller;
-import org.springframework.web.bind.annotation.*;
-import java.util.*;
+
+import com.stocksim.model.Stock; // <-- Add this import
 import com.stocksim.service.StockService;
-import com.stocksim.model.Stock;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequestMapping("/api/stocks")
 public class StockController {
-    private final StockService stockService;
-    public StockController(StockService stockService){ this.stockService = stockService; }
 
-    @GetMapping
-    public List<Stock> list(){ return stockService.listAll(); }
+    @Autowired
+    private StockService stockService;
 
     @GetMapping("/{symbol}")
-    public Stock get(@PathVariable String symbol){
-        return stockService.get(symbol).orElseThrow();
+    public ResponseEntity<Stock> getStockData(@PathVariable String symbol) {
+        Stock stock = stockService.getStockData(symbol);
+        if (stock != null) {
+            return ResponseEntity.ok(stock);
+        } else {
+            return ResponseEntity.notFound().build();
+        }
     }
 }

@@ -1,29 +1,45 @@
 package com.stocksim.service;
 
-import org.springframework.stereotype.Service;
-import org.springframework.scheduling.annotation.Scheduled;
-import java.util.*;
-import com.stocksim.repository.StockRepository;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.stocksim.model.Stock;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.ResponseEntity;
+import org.springframework.stereotype.Service;
+import org.springframework.web.client.RestTemplate;
 
 @Service
 public class StockService {
-    private final StockRepository stockRepo;
-    public StockService(StockRepository stockRepo){ this.stockRepo = stockRepo; }
 
-    // Simulate price updates every 5 seconds (for demo); in real app use real feed
-    @Scheduled(fixedRate = 5000)
-    public void randomWalkPrices(){
-        List<Stock> all = stockRepo.findAll();
-        Random r = new Random();
-        for(Stock s: all){
-            double change = (r.nextDouble() - 0.5) * 2.0; // -1..+1
-            double newPrice = Math.max(1.0, s.getPrice() + change);
-            s.setPrice(Math.round(newPrice * 100.0)/100.0);
-        }
-        stockRepo.saveAll(all);
+    @Value("${alphavantage.api.key}")
+    private String apiKey;
+
+    private final RestTemplate restTemplate;
+    private final ObjectMapper objectMapper;
+
+    public StockService(RestTemplate restTemplate, ObjectMapper objectMapper) {
+        this.restTemplate = restTemplate;
+        this.objectMapper = objectMapper;
     }
 
-    public List<Stock> listAll(){ return stockRepo.findAll(); }
-    public Optional<Stock> get(String symbol){ return stockRepo.findById(symbol); }
+    public Stock getStockData(String symbol) {
+        String apiUrl = "https://www.alphavantage.co/query?function=GLOBAL_QUOTE&symbol=" + symbol + "&apikey=" + apiKey;
+        try {
+            ResponseEntity<String> response = restTemplate.getForEntity(apiUrl, String.class);
+            JsonNode root = objectMapper.readTree(response.getBody());
+            JsonNode quote = root.path("Global Quote");
+
+            if (quote.isMissingNode() || quote.isEmpty()) {
+                return null;
+            }
+
+            String stockSymbol = quote.path("01. symbol").asText();
+            double price = quote.path("05. price").asDouble();
+
+            return new Stock(stockSymbol, price);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return null;
+        }
+    }
 }

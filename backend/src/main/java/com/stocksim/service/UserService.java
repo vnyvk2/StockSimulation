@@ -1,22 +1,41 @@
 package com.stocksim.service;
-import org.springframework.stereotype.Service;
-import com.stocksim.repository.UserRepository;
+
 import com.stocksim.model.User;
-import java.util.Optional;
+import com.stocksim.repository.UserRepository;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
+import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.stereotype.Service;
+
+import java.util.Optional; // <-- Import Optional
 
 @Service
-public class UserService {
-    private final UserRepository repo;
-    public UserService(UserRepository repo){this.repo = repo;}
-    public User register(String username, String password){
-        User u = new User();
-        u.setUsername(username);
-        u.setPassword(password); // NOTE: In real app hash passwords
-        u.setCash(100000.0);
-        return repo.save(u);
+public class UserService implements UserDetailsService {
+
+    @Autowired
+    private UserRepository userRepository;
+
+    @Autowired
+    private PasswordEncoder passwordEncoder;
+
+    public User registerUser(User user) {
+        user.setPassword(passwordEncoder.encode(user.getPassword()));
+        user.setBalance(100000); // Give user a starting balance
+        return userRepository.save(user);
     }
-    public Optional<User> login(String username, String password){
-        return repo.findByUsername(username).filter(u -> u.getPassword().equals(password));
+
+    // This method now correctly handles the Optional
+    public User findByUsername(String username) {
+        return userRepository.findByUsername(username)
+                .orElse(null); // Return the user or null if not found
     }
-    public Optional<User> findById(Long id){ return repo.findById(id); }
+
+    @Override
+    public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
+        // This method now correctly finds and returns the User object as a UserDetails
+        return userRepository.findByUsername(username)
+                .orElseThrow(() -> new UsernameNotFoundException("User not found with username: " + username));
+    }
 }

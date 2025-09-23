@@ -1,24 +1,31 @@
 package com.stocksim.model;
 
-import jakarta.persistence.*;
+import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+import lombok.AllArgsConstructor;
+import lombok.Getter; // Add this import
+import lombok.Setter; // Add this import
 
 @Entity
-@Table(name="stocks")
+@Data
+@NoArgsConstructor
+@AllArgsConstructor // <-- This was the missing piece! It creates the constructor needed.
 public class Stock {
-    @Id
-    private String symbol; // e.g., AAPL
-    private String name;
-    private Double price;
 
-    public Stock(){}
-    public Stock(String symbol, String name, Double price){
-        this.symbol=symbol; this.name=name; this.price=price;
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+
+    private String symbol;
+    private double price;
+
+    // This constructor is needed for the new StockService logic
+    public Stock(String symbol, double price) {
+        this.symbol = symbol;
+        this.price = price;
     }
-    // getters/setters
-    public String getSymbol(){return symbol;}
-    public void setSymbol(String symbol){this.symbol=symbol;}
-    public String getName(){return name;}
-    public void setName(String name){this.name=name;}
-    public Double getPrice(){return price;}
-    public void setPrice(Double price){this.price=price;}
 }

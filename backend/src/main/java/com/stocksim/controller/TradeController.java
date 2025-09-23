@@ -1,30 +1,34 @@
 package com.stocksim.controller;
-import org.springframework.web.bind.annotation.*;
+
+import com.stocksim.dto.TradeRequest; // <-- Add import
+import com.stocksim.model.User;
 import com.stocksim.service.TradeService;
 import com.stocksim.service.UserService;
-import com.stocksim.dto.TradeRequest;
-import com.stocksim.model.User;
-import com.stocksim.model.Trade;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.web.bind.annotation.*;
+
 
 @RestController
-@RequestMapping("/api/trades")
+@RequestMapping("/api/trade")
 public class TradeController {
-    private final TradeService tradeService;
-    private final UserService userService;
-    public TradeController(TradeService tradeService, UserService userService){
-        this.tradeService = tradeService; this.userService = userService;
-    }
 
-    // NOTE: For demo we pass userId in body; replace with auth in real app
-    @PostMapping("/buy")
-    public Trade buy(@RequestBody TradeRequest req){
-        User user = userService.findById(req.getUserId()).orElseThrow();
-        return tradeService.executeBuy(user, req.getSymbol(), req.getQuantity());
-    }
+    @Autowired
+    private TradeService tradeService;
+    @Autowired
+    private UserService userService;
 
-    @PostMapping("/sell")
-    public Trade sell(@RequestBody TradeRequest req){
-        User user = userService.findById(req.getUserId()).orElseThrow();
-        return tradeService.executeSell(user, req.getSymbol(), req.getQuantity());
+
+    @PostMapping
+    public ResponseEntity<?> executeTrade(@RequestBody TradeRequest tradeRequest, @AuthenticationPrincipal UserDetails userDetails) {
+        try {
+            User user = (User) userDetails;
+            tradeService.executeTrade(user, tradeRequest.getSymbol(), tradeRequest.getQuantity(), tradeRequest.getType());
+            return ResponseEntity.ok("Trade executed successfully");
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
     }
 }
