@@ -1,26 +1,29 @@
 package com.stocksim.model;
 
 import jakarta.persistence.*;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+import lombok.AllArgsConstructor;
 
 @Entity
-@Table(name="portfolio")
+@Table(name = "portfolio")
+@Data // Generates getters, setters, toString, etc.
+@NoArgsConstructor // Generates the empty constructor: public PortfolioItem() {}
+@AllArgsConstructor // Generates the constructor with all arguments
 public class PortfolioItem {
-    @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
     @ManyToOne
+    @JoinColumn(name = "user_id", nullable = false) // Good practice to specify the join column
     private User user;
+
+    @Column(nullable = false)
     private String symbol;
+
+    @Column(nullable = false)
     private Integer quantity;
 
-    public PortfolioItem(){}
-    // getters/setters...
-    public Long getId(){return id;}
-    public void setId(Long id){this.id=id;}
-    public User getUser(){return user;}
-    public void setUser(User user){this.user=user;}
-    public String getSymbol(){return symbol;}
-    public void setSymbol(String symbol){this.symbol=symbol;}
-    public Integer getQuantity(){return quantity;}
-    public void setQuantity(Integer quantity){this.quantity=quantity;}
 }

@@ -1,12 +1,21 @@
 package com.stocksim.dto;
+
+import lombok.Data;
+import lombok.NoArgsConstructor;
+import lombok.AllArgsConstructor;
+
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
 public class TradeRequest {
-    private Long userId;
+
+    // The stock symbol (e.g., "AAPL", "GOOGL")
     private String symbol;
-    private Integer quantity;
-    public Long getUserId(){return userId;}
-    public void setUserId(Long id){this.userId = id;}
-    public String getSymbol(){return symbol;}
-    public void setSymbol(String s){this.symbol=s;}
-    public Integer getQuantity(){return quantity;}
-    public void setQuantity(Integer q){this.quantity=q;}
+
+    // The number of shares to trade
+    private int quantity;
+
+    // The type of trade: "BUY" or "SELL"
+    private String type;
+
 }
